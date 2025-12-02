@@ -4,12 +4,39 @@ This guide will help you set up the Python backend server for the Crawler projec
 
 ## Prerequisites
 
-- Python 3.8 or higher
-- pip (Python package manager)
+- Docker installed on your machine or VPS
 - A Google Gemini API Key (Get one from [Google AI Studio](https://aistudio.google.com/))
-- SSH access to your VPS
 
-## Setup Instructions on VPS
+## Deployment with Docker (Recommended)
+
+### Step 1: Build the Docker Image
+Navigate to the `backend` directory and run:
+```bash
+docker build -t crawler-backend .
+```
+
+### Step 2: Run the Container
+Run the container, mapping port 8000 and passing your API key:
+```bash
+docker run -d \
+  -p 8000:8000 \
+  -e GEMINI_API_KEY=your_actual_api_key_here \
+  --name crawler-backend \
+  crawler-backend
+```
+
+### Step 3: Verify Deployment
+Check if the container is running:
+```bash
+docker ps
+```
+
+You can also view logs:
+```bash
+docker logs -f crawler-backend
+```
+
+## Alternative: Manual Setup on VPS
 
 ### Step 1: Connect to Your VPS
 ```bash
