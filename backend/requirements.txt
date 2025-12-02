@@ -4,3 +4,5 @@ sqlalchemy
 pydantic
 google-generativeai
 python-dotenv
+dash
+requests

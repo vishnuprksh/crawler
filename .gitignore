@@ -16,3 +16,5 @@ venv/
 .packages
 .pub/
 pubspec.lock
+*.db
+.vscode/

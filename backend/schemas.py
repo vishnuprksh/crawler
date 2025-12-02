@@ -15,7 +15,7 @@ class Topic(TopicBase):
 
 class ArticleCardBase(BaseModel):
     id: str
-    topic_id: str
+    topic_id: Optional[str] = None
     title: str
     summary: str
     image_url: Optional[str] = None
