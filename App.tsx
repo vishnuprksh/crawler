@@ -120,10 +120,29 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleArchiveCard = (cardId: string) => {
+    setState(prev => {
+      const cardIndex = prev.activeCards.findIndex(c => c.id === cardId);
+      if (cardIndex === -1) return prev;
+
+      const card = prev.activeCards[cardIndex];
+      const newActive = [...prev.activeCards];
+      newActive.splice(cardIndex, 1);
+
+      const newArchived = [{ ...card, isArchived: true }, ...prev.archivedCards];
+
+      return {
+        ...prev,
+        activeCards: newActive,
+        archivedCards: newArchived,
+      };
+    });
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'feed':
-        return <Feed cards={state.activeCards} isLoading={isLoading} onReadMore={setSelectedCard} />;
+        return <Feed cards={state.activeCards} isLoading={isLoading} onReadMore={setSelectedCard} onArchive={handleArchiveCard} />;
       case 'topics':
         return <TopicManager topics={state.topics} onAddTopic={handleAddTopic} onRemoveTopic={handleRemoveTopic} />;
       case 'archive':

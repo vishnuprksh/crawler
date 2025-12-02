@@ -1,14 +1,15 @@
 import React from 'react';
 import { ArticleCard } from '../types';
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, Loader2, Sparkles, Archive } from 'lucide-react';
 
 interface FeedProps {
   cards: ArticleCard[];
   isLoading: boolean;
   onReadMore: (card: ArticleCard) => void;
+  onArchive: (cardId: string) => void;
 }
 
-const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore }) => {
+const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive }) => {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
@@ -53,6 +54,19 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore }) => {
                  <span className="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold text-indigo-600 rounded-full shadow-sm uppercase tracking-wider">
                   {card.topicQuery}
                  </span>
+              </div>
+              <div className="absolute top-4 right-4">
+                 <button
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     onArchive(card.id);
+                   }}
+                   className="p-2 bg-white/90 backdrop-blur text-gray-600 hover:text-indigo-600 rounded-full shadow-sm transition-colors hover:bg-indigo-50"
+                   aria-label="Archive card"
+                   title="Archive"
+                 >
+                   <Archive size={18} />
+                 </button>
               </div>
             </div>
             
