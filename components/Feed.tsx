@@ -14,7 +14,7 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive }) 
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400">
         <Loader2 size={48} className="animate-spin mb-4 text-indigo-500" />
-        <p className="text-lg font-medium animate-pulse">Scouring the web for intel...</p>
+        <p className="text-lg font-medium animate-pulse">Crawler is scouring the web...</p>
       </div>
     );
   }
@@ -25,7 +25,7 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive }) 
         <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
           <Sparkles size={32} className="text-gray-400" />
         </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-2">All Caught Up!</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Crawler is Empty</h3>
         <p className="max-w-xs">You've cleared your feed or haven't added any topics yet. Head to the Topics tab to start collecting.</p>
       </div>
     );
@@ -34,8 +34,8 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive }) 
   return (
     <div className="pb-24 space-y-6 max-w-xl mx-auto">
       <div className="px-4 pt-6">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Today's Brief</h1>
-        <p className="text-gray-500 mt-1">Curated intelligence just for you.</p>
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Crawler</h1>
+        <p className="text-gray-500 mt-1">Your daily intelligence brief.</p>
       </div>
 
       <div className="space-y-6 px-4">

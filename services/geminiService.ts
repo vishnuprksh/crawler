@@ -5,9 +5,9 @@ import { GroundingSource } from "../types";
 // NOTE: API_KEY must be provided in the environment or replaced here.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// Models
-const SEARCH_MODEL = 'gemini-2.5-flash'; // Good for search grounding
-const FORMAT_MODEL = 'gemini-2.5-flash'; // Fast, structured output
+// Models - Enforcing Gemini 2.5 Flash as requested
+const SEARCH_MODEL = 'gemini-2.5-flash'; 
+const FORMAT_MODEL = 'gemini-2.5-flash';
 
 /**
  * Step 1: Perform the search using Google Search Grounding.
@@ -87,7 +87,7 @@ async function formatResultsToCards(searchText: string, query: string): Promise<
 
     const response = await ai.models.generateContent({
       model: FORMAT_MODEL,
-      contents: `You are an editor for a tech news aggregator. 
+      contents: `You are an editor for a tech news aggregator called "Crawler". 
       Here is raw information gathered from a search about "${query}":
       
       ---
