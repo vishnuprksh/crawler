@@ -1,20 +1,13 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Project Crawler
 
-# Run and deploy your AI Studio app
+This repository contains the source code for the Crawler project, organized into the following components:
 
-This contains everything you need to run your app locally.
+## Structure
 
-View your app in AI Studio: https://ai.studio/apps/drive/1zGAqpYOeLi_EBfK494VA1riT_0k-cm8e
+- **backend/**: Python-based backend services (to be deployed on VPS).
+- **web/**: React-based web application.
+- **android/**: Flutter-based Android application (to be deployed on Play Store).
 
-## Run Locally
+## Getting Started
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Please refer to the README files in each subdirectory for specific instructions on how to run and develop each component.
