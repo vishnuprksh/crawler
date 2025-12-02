@@ -10,13 +10,14 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <main className="w-full">
+    <div className="h-screen bg-gray-50 text-gray-900 flex flex-col overflow-hidden">
+      {/* Main Content Area */}
+      <main className="flex-1 w-full overflow-y-auto no-scrollbar relative">
         {children}
       </main>
 
       {/* Sticky Bottom Navigation */}
-      <div className="fixed bottom-0 inset-x-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 pb-safe pt-2 z-40">
+      <div className="bg-white/90 backdrop-blur-lg border-t border-gray-200 pb-safe z-40 shrink-0">
         <div className="max-w-xl mx-auto flex justify-around items-center h-16 px-2">
           <button
             onClick={() => onTabChange('feed')}

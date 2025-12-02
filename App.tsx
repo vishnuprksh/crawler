@@ -115,11 +115,10 @@ const App: React.FC = () => {
     setState(prev => ({
       ...prev,
       topics: prev.topics.filter(t => t.id !== id),
-      // Optionally remove active cards associated with this topic?
-      // Let's keep them until the day ends.
     }));
   };
 
+  // Archive (Swipe Right)
   const handleArchiveCard = (cardId: string) => {
     setState(prev => {
       const cardIndex = prev.activeCards.findIndex(c => c.id === cardId);
@@ -139,14 +138,41 @@ const App: React.FC = () => {
     });
   };
 
+  // Discard (Swipe Left)
+  const handleDiscardCard = (cardId: string) => {
+    setState(prev => {
+      const newActive = prev.activeCards.filter(c => c.id !== cardId);
+      return {
+        ...prev,
+        activeCards: newActive,
+      };
+    });
+  };
+
+  // Delete from Archive
+  const handleDeleteFromArchive = (cardId: string) => {
+    setState(prev => ({
+      ...prev,
+      archivedCards: prev.archivedCards.filter(c => c.id !== cardId),
+    }));
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'feed':
-        return <Feed cards={state.activeCards} isLoading={isLoading} onReadMore={setSelectedCard} onArchive={handleArchiveCard} />;
+        return (
+          <Feed 
+            cards={state.activeCards} 
+            isLoading={isLoading} 
+            onReadMore={setSelectedCard} 
+            onArchive={handleArchiveCard} 
+            onDiscard={handleDiscardCard}
+          />
+        );
       case 'topics':
         return <TopicManager topics={state.topics} onAddTopic={handleAddTopic} onRemoveTopic={handleRemoveTopic} />;
       case 'archive':
-        return <Archive cards={state.archivedCards} onReadMore={setSelectedCard} />;
+        return <Archive cards={state.archivedCards} onReadMore={setSelectedCard} onDelete={handleDeleteFromArchive} />;
       default:
         return null;
     }
