@@ -11,7 +11,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
   if (!card) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center pointer-events-none">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity" 
@@ -29,12 +29,16 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
             className="w-full h-full object-cover"
           />
           <button 
-            onClick={onClose}
-            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-md transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-md transition-colors cursor-pointer"
+            aria-label="Close"
           >
             <X size={20} />
           </button>
-          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-20">
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-20 pointer-events-none">
             <span className="inline-block px-2 py-1 mb-2 text-xs font-bold text-white bg-indigo-600 rounded uppercase tracking-wider">
               {card.topicQuery}
             </span>

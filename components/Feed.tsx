@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArticleCard } from '../types';
-import { Loader2, Sparkles, Archive, X, Info } from 'lucide-react';
+import { Loader2, Sparkles, Info } from 'lucide-react';
 
 interface FeedProps {
   cards: ArticleCard[];
@@ -206,33 +206,6 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Control Buttons */}
-      <div className="h-24 shrink-0 flex items-center justify-center space-x-8 pb-4">
-        <button 
-          onClick={() => completeSwipe('left')}
-          className="w-14 h-14 bg-white rounded-full shadow-lg border border-gray-100 flex items-center justify-center text-red-500 hover:bg-red-50 hover:scale-110 transition-all"
-          aria-label="Discard"
-        >
-          <X size={28} />
-        </button>
-        
-        <button 
-           onClick={() => onReadMore(activeCard)}
-           className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 hover:scale-110 transition-all"
-           aria-label="Read Info"
-        >
-          <Info size={20} />
-        </button>
-
-        <button 
-          onClick={() => completeSwipe('right')}
-          className="w-14 h-14 bg-white rounded-full shadow-lg border border-gray-100 flex items-center justify-center text-green-500 hover:bg-green-50 hover:scale-110 transition-all"
-          aria-label="Archive"
-        >
-          <Archive size={28} />
-        </button>
       </div>
     </div>
   );
