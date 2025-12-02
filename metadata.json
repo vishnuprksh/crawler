@@ -1,0 +1,5 @@
+{
+  "name": "InfoScout",
+  "description": "A personal intelligence collector that scours the web for your specific topics and delivers daily, bite-sized, click-worthy cards.",
+  "requestFramePermissions": []
+}
