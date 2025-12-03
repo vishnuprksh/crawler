@@ -6,9 +6,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { storageService } from '../services/storageService';
-import { apiService } from '../services/apiService';
-import { cacheService } from '../services/cacheService';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -51,25 +48,6 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
-  useEffect(() => {
-    const checkDailyRefresh = async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const lastFetch = await storageService.getLastFetchDate();
-
-      if (lastFetch !== today) {
-        try {
-          const topics = await apiService.getTopics();
-          await Promise.all(topics.map(t => apiService.generateArticle(t.id)));
-          await cacheService.invalidateFeed();
-          await storageService.setLastFetchDate(today);
-        } catch (e) {
-          console.error("Daily refresh failed", e);
-        }
-      }
-    };
-    checkDailyRefresh();
-  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

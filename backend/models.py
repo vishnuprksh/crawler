@@ -24,5 +24,6 @@ class ArticleCard(Base):
     citations = Column(JSON, default=list)
     is_archived = Column(Boolean, default=False)
     is_read = Column(Boolean, default=False)
+    is_consumed = Column(Boolean, default=False)
 
     topic = relationship("Topic", back_populates="articles")

@@ -24,6 +24,7 @@ class ArticleCardBase(BaseModel):
     citations: List[str] = []
     is_archived: bool = False
     is_read: bool = False
+    is_consumed: bool = False
 
 class ArticleCardCreate(ArticleCardBase):
     pass

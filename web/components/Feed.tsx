@@ -173,7 +173,7 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
           </div>
 
           {/* Image Area */}
-          <div className="relative h-3/5 shrink-0 pointer-events-none">
+          <div className="relative h-1/2 shrink-0 pointer-events-none">
             <img 
               src={activeCard.imageUrl} 
               alt={activeCard.title} 
@@ -185,14 +185,12 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
                 {activeCard.topicQuery}
                </span>
             </div>
-            {/* Gradient for text readability */}
-            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
           
           {/* Content Area */}
-          <div className="p-6 flex-1 flex flex-col justify-between pointer-events-none">
+          <div className="p-6 flex-1 flex flex-col justify-between pointer-events-none bg-white">
             <div>
-              <h2 className="text-2xl font-extrabold text-gray-900 leading-tight mb-2 line-clamp-3">
+              <h2 className="text-xl font-extrabold text-gray-900 leading-tight mb-2 line-clamp-3">
                 {activeCard.title}
               </h2>
               <p className="text-gray-600 line-clamp-3 text-sm leading-relaxed">

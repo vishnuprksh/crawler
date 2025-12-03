@@ -17,27 +17,24 @@ interface ArticleCardProps {
 export const ArticleCard: React.FC<ArticleCardProps> = ({ card, onReadMore }) => {
   return (
     <View style={styles.card}>
-      <Image
-        source={{ uri: card.image_url || 'https://picsum.photos/400/600' }}
-        style={styles.image}
-        contentFit="cover"
-        transition={200}
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
-        style={styles.gradient}
-      >
-        <View style={styles.content}>
-          <Text style={styles.topic}>{card.topic_id}</Text> 
-          <Text style={styles.title} numberOfLines={2}>{card.title}</Text>
-          <Text style={styles.summary} numberOfLines={3}>{card.summary}</Text>
-          
-          <TouchableOpacity style={styles.button} onPress={onReadMore}>
-            <Text style={styles.buttonText}>Read More</Text>
-            <ArrowRight size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: card.image_url || 'https://picsum.photos/400/600' }}
+          style={styles.image}
+          contentFit="cover"
+          transition={200}
+        />
+      </View>
+      <View style={styles.content}>
+        <Text style={styles.topic}>{card.topic_id}</Text> 
+        <Text style={styles.title} numberOfLines={2}>{card.title}</Text>
+        <Text style={styles.summary} numberOfLines={3}>{card.summary}</Text>
+        
+        <TouchableOpacity style={styles.button} onPress={onReadMore}>
+          <Text style={styles.buttonText}>Read More</Text>
+          <ArrowRight size={16} color="#fff" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -55,37 +52,35 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  imageContainer: {
+    height: '50%',
+    width: '100%',
+  },
   image: {
     width: '100%',
     height: '100%',
   },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '60%',
-    justifyContent: 'flex-end',
-    padding: 20,
-  },
   content: {
+    height: '50%',
+    padding: 20,
     gap: 8,
+    backgroundColor: '#fff',
   },
   topic: {
-    color: '#a5b4fc',
+    color: '#4f46e5',
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   title: {
-    color: '#fff',
-    fontSize: 24,
+    color: '#1f2937',
+    fontSize: 22,
     fontWeight: '800',
-    lineHeight: 30,
+    lineHeight: 28,
   },
   summary: {
-    color: '#e2e8f0',
+    color: '#4b5563',
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 8,
@@ -98,6 +93,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 25,
     alignSelf: 'flex-start',
+    marginTop: 'auto',
     gap: 8,
   },
   buttonText: {

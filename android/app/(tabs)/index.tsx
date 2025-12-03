@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CardStack } from '../../components/CardStack';
 import { ArticleModal } from '../../components/ArticleModal';
 import { apiService } from '../../services/apiService';
-import { cacheService } from '../../services/cacheService';
 import { ArticleCard } from '../../types';
 
 export default function FeedScreen() {
@@ -13,27 +12,20 @@ export default function FeedScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCard, setSelectedCard] = useState<ArticleCard | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadFeed = async (forceRefresh = false) => {
+  const loadFeed = async () => {
     try {
-      if (!forceRefresh) {
-        const cached = await cacheService.getFeed();
-        if (cached) {
-          setCards(cached);
-          setLoading(false);
-          return;
-        }
-      }
-
-      const data = await apiService.getFeed();
-      const shuffled = data.sort(() => Math.random() - 0.5);
-      setCards(shuffled);
-      await cacheService.setFeed(shuffled);
+      const newArticles = await apiService.getFeed();
+      setCards(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const uniqueNew = newArticles.filter(a => !existingIds.has(a.id));
+        return [...prev, ...uniqueNew];
+      });
+      setLoading(false);
     } catch (error) {
       console.error('Failed to load feed', error);
-    } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -43,17 +35,25 @@ export default function FeedScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    cacheService.invalidateFeed().then(() => loadFeed(true));
+    setCards([]);
+    setRefreshKey(prev => prev + 1);
+    loadFeed().then(() => setRefreshing(false));
   }, []);
 
+  const handleSwipe = async (card: ArticleCard) => {
+    apiService.swipeArticle(card.id);
+    // Fetch more to keep the buffer full locally
+    loadFeed();
+  };
+
   const handleSwipeLeft = (card: ArticleCard) => {
-    setCards(prev => prev.filter(c => c.id !== card.id));
+    handleSwipe(card);
   };
 
   const handleSwipeRight = async (card: ArticleCard) => {
     try {
       await apiService.archiveArticle(card.id);
-      setCards(prev => prev.filter(c => c.id !== card.id));
+      handleSwipe(card);
     } catch (error) {
       console.error('Failed to archive', error);
     }
@@ -64,7 +64,7 @@ export default function FeedScreen() {
     setModalVisible(true);
   };
 
-  if (loading) {
+  if (loading && cards.length === 0) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#4f46e5" />
@@ -76,6 +76,7 @@ export default function FeedScreen() {
     <SafeAreaView style={styles.container}>
       {cards.length > 0 ? (
         <CardStack
+          key={refreshKey}
           cards={cards}
           onSwipeLeft={handleSwipeLeft}
           onSwipeRight={handleSwipeRight}
@@ -86,8 +87,8 @@ export default function FeedScreen() {
           contentContainerStyle={styles.center}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <Text style={styles.emptyText}>No new articles for today.</Text>
-          <Text style={styles.subText}>Check back later or add more topics!</Text>
+          <Text style={styles.emptyText}>No articles loaded.</Text>
+          <Text style={styles.subText}>Pull down to refresh and load articles.</Text>
         </ScrollView>
       )}
 

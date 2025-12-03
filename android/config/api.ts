@@ -12,6 +12,7 @@ export const ENDPOINTS = {
   ARCHIVE: '/archive',
   GENERATE: (topicId: string) => `/generate/${topicId}`,
   ARCHIVE_ARTICLE: (articleId: string) => `/articles/${articleId}/archive`,
+  SWIPE_ARTICLE: (articleId: string) => `/articles/${articleId}/swipe`,
 };
 
 export const api = axios.create({

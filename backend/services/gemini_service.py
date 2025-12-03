@@ -1,9 +1,12 @@
 import os
 import google.generativeai as genai
+from google import genai as new_genai
+from google.genai import types
 from dotenv import load_dotenv
 import json
 from datetime import datetime
 import uuid
+import base64
 
 load_dotenv()
 
@@ -24,6 +27,43 @@ model = genai.GenerativeModel(
     generation_config=generation_config,
 )
 
+# New image generation client
+image_client = None
+if GEMINI_API_KEY:
+    image_client = new_genai.Client(api_key=GEMINI_API_KEY)
+
+def generate_article_image(title: str, summary: str) -> str:
+    """Generate an image for the article based on title and summary."""
+    if not image_client:
+        return None
+    
+    # Create a descriptive prompt for the image
+    prompt = f"Create a professional, engaging image that represents this news article: '{title}'. Key elements from the summary: {summary[:200]}..."
+    
+    try:
+        # Using gemini-2.0-flash-exp which supports image generation
+        response = image_client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                response_modalities=['IMAGE'],
+            )
+        )
+        
+        # Extract the image
+        if response.candidates and response.candidates[0].content.parts:
+            for part in response.candidates[0].content.parts:
+                if part.inline_data:
+                    # part.inline_data.data is bytes
+                    b64_data = base64.b64encode(part.inline_data.data).decode('utf-8')
+                    mime_type = part.inline_data.mime_type
+                    return f"data:{mime_type};base64,{b64_data}"
+        
+        return None
+    except Exception as e:
+        print(f"Error generating image: {e}")
+        return None
+
 def generate_article_content(topic_query: str):
     if not GEMINI_API_KEY:
         raise Exception("GEMINI_API_KEY not set")
@@ -43,13 +83,17 @@ def generate_article_content(topic_query: str):
     Ensure the information is current and factual.
     """
     
-    # Note: In a real production scenario with Google Search Grounding, 
-    # you would enable the tools configuration. For this prototype, 
-    # we are simulating the structure.
-    
     try:
         response = model.generate_content(prompt)
-        return json.loads(response.text)
+        content = json.loads(response.text)
+        
+        # Generate image
+        if content.get('title') and content.get('summary'):
+            image_url = generate_article_image(content['title'], content['summary'])
+            if image_url:
+                content['image_url'] = image_url
+        
+        return content
     except Exception as e:
         print(f"Error generating content: {e}")
         return None
