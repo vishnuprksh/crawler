@@ -3,7 +3,13 @@ import { AppState, Topic, ArticleCard } from '../types';
 const STORAGE_KEY = 'crawler_data_v1';
 
 const INITIAL_STATE: AppState = {
-  topics: [],
+  topics: [
+    {
+      id: 'default-russia-ukraine',
+      query: 'what is happening with russia and ukraine now?',
+      createdAt: Date.now(),
+    }
+  ],
   activeCards: [],
   archivedCards: [],
   lastFetchDate: null,

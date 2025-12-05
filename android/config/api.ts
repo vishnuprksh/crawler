@@ -13,6 +13,7 @@ export const ENDPOINTS = {
   GENERATE: (topicId: string) => `/generate/${topicId}`,
   ARCHIVE_ARTICLE: (articleId: string) => `/articles/${articleId}/archive`,
   SWIPE_ARTICLE: (articleId: string) => `/articles/${articleId}/swipe`,
+  DELETE_ARTICLE: (articleId: string) => `/articles/${articleId}`,
 };
 
 export const api = axios.create({

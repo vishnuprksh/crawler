@@ -18,6 +18,7 @@ class ArticleCard(Base):
     topic_id = Column(String, ForeignKey("topics.id"))
     title = Column(String)
     summary = Column(String)
+    content = Column(Text, nullable=True)
     image_url = Column(String, nullable=True)
     source_url = Column(String, nullable=True)
     published_date = Column(String, nullable=True)
@@ -25,5 +26,6 @@ class ArticleCard(Base):
     is_archived = Column(Boolean, default=False)
     is_read = Column(Boolean, default=False)
     is_consumed = Column(Boolean, default=False)
+    word_count = Column(Integer, default=0)
 
     topic = relationship("Topic", back_populates="articles")

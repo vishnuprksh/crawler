@@ -18,6 +18,7 @@ class ArticleCardBase(BaseModel):
     topic_id: Optional[str] = None
     title: str
     summary: str
+    content: Optional[str] = None
     image_url: Optional[str] = None
     source_url: Optional[str] = None
     published_date: Optional[str] = None
@@ -25,6 +26,7 @@ class ArticleCardBase(BaseModel):
     is_archived: bool = False
     is_read: bool = False
     is_consumed: bool = False
+    word_count: int = 0
 
 class ArticleCardCreate(ArticleCardBase):
     pass

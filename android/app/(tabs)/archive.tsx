@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Swipeable } from 'react-native-gesture-handler';
 import { apiService } from '../../services/apiService';
 import { ArticleCard } from '../../types';
 import { ArticleModal } from '../../components/ArticleModal';
@@ -22,20 +23,49 @@ export default function ArchiveScreen() {
     loadArchive();
   }, []);
 
-  const renderItem = ({ item }: { item: ArticleCard }) => (
-    <TouchableOpacity 
-      style={styles.item} 
-      onPress={() => {
-        setSelectedCard(item);
-        setModalVisible(true);
-      }}
-    >
-      <Image source={{ uri: item.image_url || 'https://picsum.photos/100' }} style={styles.thumbnail} />
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.date}>{item.published_date || 'Unknown date'}</Text>
+  const handleDelete = async (articleId: string) => {
+    try {
+      await apiService.deleteArticle(articleId);
+      setArticles(prev => prev.filter(a => a.id !== articleId));
+    } catch (error) {
+      console.error('Failed to delete article', error);
+    }
+  };
+
+  const renderLeftActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
+    const scale = dragX.interpolate({
+      inputRange: [0, 100],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <View style={styles.deleteAction}>
+        <Animated.Text style={[styles.deleteText, { transform: [{ scale }] }]}>🗑️</Animated.Text>
       </View>
-    </TouchableOpacity>
+    );
+  };
+
+  const renderItem = ({ item }: { item: ArticleCard }) => (
+    <Swipeable
+      renderLeftActions={renderLeftActions}
+      onSwipeableOpen={() => handleDelete(item.id)}
+      overshootLeft={false}
+    >
+      <TouchableOpacity 
+        style={styles.item} 
+        onPress={() => {
+          setSelectedCard(item);
+          setModalVisible(true);
+        }}
+      >
+        <Image source={{ uri: item.image_url || 'https://picsum.photos/100' }} style={styles.thumbnail} />
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.date}>{item.published_date || 'Unknown date'}</Text>
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 
   return (
@@ -95,5 +125,16 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 12,
     color: '#9ca3af',
+  },
+  deleteAction: {
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 12,
+  },
+  deleteText: {
+    fontSize: 32,
   },
 });

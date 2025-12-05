@@ -1,7 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { X, ExternalLink } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
+import Markdown from 'react-native-markdown-display';
 import { ArticleCard } from '../types';
 
 interface ArticleModalProps {
@@ -28,19 +29,85 @@ export const ArticleModal: React.FC<ArticleModalProps> = ({ visible, card, onClo
             <Text style={styles.title}>{card.title}</Text>
             <Text style={styles.date}>{card.published_date || 'Just now'}</Text>
             
-            <Text style={styles.summary}>{card.summary}</Text>
-            
-            {card.source_url && (
-              <TouchableOpacity style={styles.sourceLink}>
-                <Text style={styles.sourceText}>Read original source</Text>
-                <ExternalLink size={16} color="#4f46e5" />
-              </TouchableOpacity>
-            )}
+            <Markdown style={markdownStyles}>{card.content || card.summary}</Markdown>
           </View>
         </ScrollView>
       </View>
     </Modal>
   );
+};
+
+const markdownStyles = {
+  body: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#374151',
+  },
+  heading1: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  heading2: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginTop: 16,
+    marginBottom: 10,
+  },
+  heading3: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  paragraph: {
+    marginBottom: 12,
+  },
+  strong: {
+    fontWeight: 'bold',
+  },
+  em: {
+    fontStyle: 'italic',
+  },
+  link: {
+    color: '#4f46e5',
+    textDecorationLine: 'underline',
+  },
+  bullet_list: {
+    marginBottom: 12,
+  },
+  ordered_list: {
+    marginBottom: 12,
+  },
+  list_item: {
+    marginBottom: 6,
+  },
+  code_inline: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
+    fontFamily: 'monospace',
+  },
+  code_block: {
+    backgroundColor: '#f3f4f6',
+    padding: 12,
+    borderRadius: 6,
+    marginBottom: 12,
+    fontFamily: 'monospace',
+  },
+  blockquote: {
+    backgroundColor: '#f9fafb',
+    borderLeftWidth: 4,
+    borderLeftColor: '#d1d5db',
+    paddingLeft: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
 };
 
 const styles = StyleSheet.create({
@@ -81,20 +148,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 16,
-  },
-  summary: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#374151',
-    marginBottom: 24,
-  },
-  sourceLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sourceText: {
-    color: '#4f46e5',
-    fontWeight: '600',
   },
 });

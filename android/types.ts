@@ -9,6 +9,7 @@ export interface ArticleCard {
   topic_id: string | null;
   title: string;
   summary: string;
+  content: string;
   image_url: string | null;
   source_url: string | null;
   published_date: string | null;

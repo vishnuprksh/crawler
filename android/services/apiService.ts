@@ -35,6 +35,10 @@ export const apiService = {
     await api.post(ENDPOINTS.SWIPE_ARTICLE(articleId));
   },
 
+  deleteArticle: async (articleId: string): Promise<void> => {
+    await api.delete(ENDPOINTS.DELETE_ARTICLE(articleId));
+  },
+
   generateArticle: async (topicId: string): Promise<ArticleCard> => {
     const response = await api.post<ArticleCard>(ENDPOINTS.GENERATE(topicId));
     return response.data;
