@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, JSON
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, JSON, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
+from datetime import datetime
 
 class Topic(Base):
     __tablename__ = "topics"
@@ -27,5 +28,6 @@ class ArticleCard(Base):
     is_read = Column(Boolean, default=False)
     is_consumed = Column(Boolean, default=False)
     word_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     topic = relationship("Topic", back_populates="articles")

@@ -1,9 +1,9 @@
 import React from 'react';
 import { X, ExternalLink, Calendar } from 'lucide-react';
-import { ArticleCard } from '../types';
+import * as apiService from '../services/apiService';
 
 interface ArticleModalProps {
-  card: ArticleCard | null;
+  card: apiService.Article | null;
   onClose: () => void;
 }
 
@@ -24,7 +24,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
         {/* Header Image */}
         <div className="relative h-48 sm:h-64 shrink-0">
           <img 
-            src={card.imageUrl} 
+            src={card.image_url} 
             alt={card.title} 
             className="w-full h-full object-cover"
           />
@@ -40,7 +40,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
           </button>
           <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-20 pointer-events-none">
             <span className="inline-block px-2 py-1 mb-2 text-xs font-bold text-white bg-indigo-600 rounded uppercase tracking-wider">
-              {card.topicQuery}
+              {card.topic_id || 'Topic'}
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
               {card.title}
@@ -53,34 +53,43 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
           <div className="flex items-center text-gray-500 text-sm mb-6 space-x-4">
             <span className="flex items-center">
               <Calendar size={14} className="mr-1" />
-              {new Date(card.generatedAt).toLocaleDateString()}
+              {card.created_at ? new Date(card.created_at).toLocaleDateString() : 'N/A'}
             </span>
           </div>
 
-          <div className="prose prose-indigo max-w-none text-gray-800 leading-relaxed mb-8">
-            <p className="font-semibold text-lg text-gray-900 mb-4">{card.teaser}</p>
-            <div className="whitespace-pre-line">
-              {card.content}
+          <div className="space-y-4 text-gray-800 leading-relaxed mb-8">
+            <p className="font-semibold text-lg text-gray-900 mb-4">{card.summary}</p>
+            <div className="prose prose-indigo max-w-none space-y-4">
+              {card.content?.split('\n').map((line, idx) => {
+                // Handle markdown headers
+                if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-bold mt-6 mb-3">{line.slice(2)}</h1>;
+                if (line.startsWith('## ')) return <h2 key={idx} className="text-2xl font-bold mt-5 mb-2">{line.slice(3)}</h2>;
+                if (line.startsWith('### ')) return <h3 key={idx} className="text-xl font-bold mt-4 mb-2">{line.slice(4)}</h3>;
+                if (line.startsWith('- ')) return <li key={idx} className="ml-4 list-disc">{line.slice(2)}</li>;
+                if (line.startsWith('* ')) return <li key={idx} className="ml-4 list-disc">{line.slice(2)}</li>;
+                if (line.trim() === '') return <div key={idx} className="h-2" />;
+                return <p key={idx}>{line}</p>;
+              })}
             </div>
           </div>
 
           {/* Sources Section */}
-          {card.sources.length > 0 && (
+          {card.citations && card.citations.length > 0 && (
             <div className="border-t border-gray-100 pt-6 mt-6">
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
-                Sources & Grounding
+                Sources & References
               </h3>
               <ul className="space-y-2">
-                {card.sources.map((source, idx) => (
+                {card.citations.map((citation, idx) => (
                   <li key={idx}>
                     <a 
-                      href={source.uri} 
+                      href={citation} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="flex items-center text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors"
                     >
                       <ExternalLink size={14} className="mr-2" />
-                      <span className="truncate">{source.title || source.uri}</span>
+                      <span className="truncate">{citation}</span>
                     </a>
                   </li>
                 ))}

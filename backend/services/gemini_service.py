@@ -47,7 +47,6 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
         raise Exception("GEMINI_API_KEY not set")
 
     article_logger.info(f"Starting article generation for topic: {topic_query}")
-    research_summary = ""
     all_citations = set()
     
     avoid_context = ""
@@ -59,89 +58,18 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
             "If the topic is static, find a completely different perspective or deep dive into a specific sub-topic not covered before."
         )
 
-    # 2 iterations of research (Total 3 calls including final write)
-    for i in range(2):
-        prompt = f"""
-        You are a specialized research assistant investigating the topic: "{topic_query}".
-        Current iteration: {i+1}/2.
-        
-        Context to Avoid (ALREADY COVERED - DO NOT REPEAT):
-        {avoid_context}
-
-        Previous Research Context:
-        {research_summary if research_summary else "None (Start of research)"}
-        
-        Your task:
-        1. Use Google Search to find the LATEST and MOST NOVEL information.
-        2. Identify gaps or new angles to explore, specifically looking for quantitative data, statistics, and specific references.
-        3. Provide a detailed summary of information for these new angles (simulate finding this info).
-        4. Suggest what to look for next.
-        
-        Return a JSON object with this structure:
-        {{
-            "analysis": "Brief analysis of current state",
-            "findings": "Detailed new information found in this step, including data points and potential citations",
-            "next_steps": "What to research next"
-        }}
-        """
-        
-        try:
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt,
-                config=generate_content_config
-            )
-            
-            # Extract grounding metadata
-            if hasattr(response, 'candidates') and response.candidates:
-                candidate = response.candidates[0]
-                if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
-                    # Check if grounding_chunks exists and is iterable
-                    chunks = getattr(candidate.grounding_metadata, 'grounding_chunks', None)
-                    if chunks:
-                        for chunk in chunks:
-                            if chunk.web and chunk.web.uri:
-                                all_citations.add(chunk.web.uri)
-
-            try:
-                if not response.text:
-                    logger.warning(f"Empty response text for step {i+1}")
-                    step_content = {"findings": "No findings in this step due to empty response."}
-                else:
-                    # Try to parse JSON directly first
-                    step_content = json.loads(response.text)
-            except json.JSONDecodeError:
-                # If JSON parsing fails, try to clean the response or use raw text
-                logger.warning(f"JSON parse failed for step {i+1}. Response text: {response.text[:500] if response.text else 'None'}")
-                logger.warning(f"Attempting cleanup for step {i+1}")
-                cleaned_text = response.text.strip()
-                if cleaned_text.startswith("```json"):
-                    cleaned_text = cleaned_text[7:]
-                elif cleaned_text.startswith("```"):
-                    cleaned_text = cleaned_text[3:]
-                if cleaned_text.endswith("```"):
-                    cleaned_text = cleaned_text[:-3]
-                try:
-                    step_content = json.loads(cleaned_text)
-                except json.JSONDecodeError:
-                     logger.warning(f"Cleanup failed for step {i+1}, using raw text as findings")
-                     step_content = {"findings": cleaned_text}
-            except Exception as e:
-                logger.error(f"Unexpected error parsing JSON for step {i+1}: {e}")
-                step_content = {"findings": response.text}
-
-            research_summary += f"\n\nStep {i+1} Findings:\n{step_content.get('findings', '')}"
-            logger.debug(f"Completed research step {i+1}/2 for topic: {topic_query}")
-        except Exception as e:
-            logger.error(f"Error in research step {i+1} for topic '{topic_query}': {e}", exc_info=True)
-            continue
-
-    # Final step: Generate Article
-    final_prompt = f"""
-    You are a senior research analyst. Write a comprehensive, LONG-FORM research-based article about "{topic_query}" based on the following research.
+    # Single comprehensive API call that handles research + synthesis
+    prompt = f"""
+    You are a senior research analyst tasked with researching and writing a comprehensive article about: "{topic_query}".
     
-    Research Context:
-    {research_summary}
+    Context to Avoid (ALREADY COVERED - DO NOT REPEAT):
+    {avoid_context}
+    
+    Your task (complete in this single response):
+    1. Use Google Search to find the LATEST and MOST NOVEL information about this topic.
+    2. Identify multiple angles, quantitative data, statistics, and credible references.
+    3. Synthesize the research into a well-structured, long-form article.
+    4. Think deeply about the topic using your HIGH thinking level to ensure thorough analysis.
     
     Requirements:
     - Pure research focus (not just news summary).
@@ -161,21 +89,20 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
         "citations": ["url1", "url2"]
     }}
     
-    Ensure the information is current, factual, and well-synthesized from the research.
+    Ensure the information is current, factual, and well-synthesized from your research.
     """
     
     try:
         response = client.models.generate_content(
             model=MODEL_NAME,
-            contents=final_prompt,
+            contents=prompt,
             config=generate_content_config
         )
         
-        # Extract grounding metadata from final step
+        # Extract grounding metadata
         if hasattr(response, 'candidates') and response.candidates:
             candidate = response.candidates[0]
             if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
-                # Check if grounding_chunks exists and is iterable
                 chunks = getattr(candidate.grounding_metadata, 'grounding_chunks', None)
                 if chunks:
                     for chunk in chunks:
@@ -184,11 +111,11 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
 
         try:
             if not response.text:
-                    logger.warning("Empty response text for final step")
-                    return None
+                logger.warning("Empty response text")
+                return None
             content = json.loads(response.text)
         except json.JSONDecodeError:
-            logger.warning("JSON parse failed for final step, attempting cleanup")
+            logger.warning("JSON parse failed, attempting cleanup")
             cleaned_text = response.text.strip()
             if cleaned_text.startswith("```json"):
                 cleaned_text = cleaned_text[7:]
@@ -199,13 +126,13 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
             try:
                 content = json.loads(cleaned_text)
             except json.JSONDecodeError:
-                logger.error("Failed to parse final article JSON even after cleanup")
+                logger.error("Failed to parse article JSON even after cleanup")
                 return None
         except Exception as e:
-            logger.error(f"Unexpected error parsing final JSON: {e}")
+            logger.error(f"Unexpected error parsing JSON: {e}")
             return None
         
-        # Merge citations
+        # Merge citations from grounding metadata with generated citations
         existing_citations = set(content.get('citations', []))
         final_citations = list(existing_citations.union(all_citations))
         content['citations'] = final_citations
@@ -219,5 +146,5 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
         article_logger.info(f"Successfully generated article: '{content.get('title')}' for topic: {topic_query}")
         return content
     except Exception as e:
-        logger.error(f"Error generating final content for topic '{topic_query}': {e}", exc_info=True)
+        logger.error(f"Error generating content for topic '{topic_query}': {e}", exc_info=True)
         return None

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Topic } from '../types';
 import { Plus, Trash2, Tag, Search } from 'lucide-react';
+import * as apiService from '../services/apiService';
 
 interface TopicManagerProps {
-  topics: Topic[];
+  topics: apiService.Topic[];
   onAddTopic: (query: string) => void;
   onRemoveTopic: (id: string) => void;
 }
@@ -64,7 +64,7 @@ const TopicManager: React.FC<TopicManagerProps> = ({ topics, onAddTopic, onRemov
           >
             <div className="flex items-center space-x-3 overflow-hidden">
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                <Tag size={18} />
+                {topic.icon}
               </div>
               <span className="font-bold text-gray-800 truncate">{topic.query}</span>
             </div>

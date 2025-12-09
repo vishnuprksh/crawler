@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArticleCard } from '../types';
+import * as apiService from '../services/apiService';
 import { Loader2, Sparkles, Info } from 'lucide-react';
 
 interface FeedProps {
-  cards: ArticleCard[];
+  cards: apiService.Article[];
   isLoading: boolean;
-  onReadMore: (card: ArticleCard) => void;
+  onReadMore: (card: apiService.Article) => void;
   onArchive: (cardId: string) => void;
   onDiscard: (cardId: string) => void;
 }
@@ -175,14 +175,14 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
           {/* Image Area */}
           <div className="relative h-1/2 shrink-0 pointer-events-none">
             <img 
-              src={activeCard.imageUrl} 
+              src={activeCard.image_url} 
               alt={activeCard.title} 
               className="w-full h-full object-cover"
               draggable={false}
             />
             <div className="absolute top-4 left-4">
                <span className="px-3 py-1 bg-white/90 backdrop-blur text-xs font-bold text-indigo-600 rounded-full shadow-sm uppercase tracking-wider">
-                {activeCard.topicQuery}
+                {activeCard.topic_id || 'Topic'}
                </span>
             </div>
           </div>
@@ -194,7 +194,7 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
                 {activeCard.title}
               </h2>
               <p className="text-gray-600 line-clamp-3 text-sm leading-relaxed">
-                {activeCard.teaser}
+                {activeCard.summary}
               </p>
             </div>
             

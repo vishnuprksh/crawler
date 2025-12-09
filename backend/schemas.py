@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
 class TopicBase(BaseModel):
     id: str
@@ -27,6 +28,7 @@ class ArticleCardBase(BaseModel):
     is_read: bool = False
     is_consumed: bool = False
     word_count: int = 0
+    created_at: Optional[datetime] = None
 
 class ArticleCardCreate(ArticleCardBase):
     pass

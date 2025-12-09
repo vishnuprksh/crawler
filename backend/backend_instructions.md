@@ -138,6 +138,153 @@ Check status:
 supervisorctl status crawler
 ```
 
+## Updating the Backend After Repository Changes
+
+When you make changes to the repository and need to update the backend on the VPS, follow these steps based on your deployment method.
+
+### Option 1: Update with Docker (Recommended)
+
+If you're using Docker, the process is simple:
+
+1. **SSH into your VPS:**
+   ```bash
+   ssh root@31.97.232.229
+   ```
+
+2. **Navigate to the repository:**
+   ```bash
+   cd /root/crawler
+   ```
+
+3. **Pull the latest changes from Git:**
+   ```bash
+   git pull origin main
+   ```
+
+4. **Stop the old container:**
+   ```bash
+   docker stop crawler-backend
+   docker rm crawler-backend
+   ```
+
+5. **Rebuild the Docker image:**
+   ```bash
+   docker build -t crawler-backend .
+   ```
+
+6. **Run the new container:**
+   ```bash
+   docker run -d \
+     -p 8000:8000 \
+     -e GEMINI_API_KEY=your_actual_api_key_here \
+     --name crawler-backend \
+     crawler-backend
+   ```
+
+7. **Verify the new deployment:**
+   ```bash
+   docker logs -f crawler-backend
+   ```
+
+### Option 2: Update with Manual Setup
+
+If using manual setup with supervisor:
+
+1. **SSH into your VPS:**
+   ```bash
+   ssh root@31.97.232.229
+   ```
+
+2. **Navigate to the backend directory:**
+   ```bash
+   cd /root/crawler/backend
+   ```
+
+3. **Stop the service:**
+   ```bash
+   supervisorctl stop crawler
+   ```
+
+4. **Navigate to the project root and pull changes:**
+   ```bash
+   cd /root/crawler
+   git pull origin main
+   ```
+
+5. **Return to backend directory and activate venv:**
+   ```bash
+   cd /root/crawler/backend
+   source .venv/bin/activate
+   ```
+
+6. **Install/update dependencies (if requirements.txt changed):**
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+7. **Restart the service:**
+   ```bash
+   supervisorctl start crawler
+   ```
+
+8. **Check status:**
+   ```bash
+   supervisorctl status crawler
+   ```
+
+### Option 3: Zero-Downtime Update with Docker
+
+For production environments where you cannot afford downtime:
+
+1. **SSH into your VPS:**
+   ```bash
+   ssh root@31.97.232.229
+   ```
+
+2. **Pull latest changes:**
+   ```bash
+   cd /root/crawler && git pull origin main
+   ```
+
+3. **Build the new image with a new tag:**
+   ```bash
+   docker build -t crawler-backend:v2 .
+   ```
+
+4. **Run the new container on a different port temporarily:**
+   ```bash
+   docker run -d \
+     -p 8001:8000 \
+     -e GEMINI_API_KEY=your_actual_api_key_here \
+     --name crawler-backend-v2 \
+     crawler-backend:v2
+   ```
+
+5. **Test the new container:**
+   ```bash
+   curl http://31.97.232.229:8001/
+   ```
+
+6. **Once verified, switch traffic (update your reverse proxy or load balancer)**
+
+7. **Stop the old container:**
+   ```bash
+   docker stop crawler-backend
+   docker rm crawler-backend
+   ```
+
+8. **Rename the new container:**
+   ```bash
+   docker stop crawler-backend-v2
+   docker rename crawler-backend-v2 crawler-backend
+   docker run -d \
+     -p 8000:8000 \
+     -e GEMINI_API_KEY=your_actual_api_key_here \
+     --name crawler-backend \
+     crawler-backend:v2
+   ```
+
 ## Testing the Backend
 
 ### Method 1: Automatic Documentation (Swagger UI)

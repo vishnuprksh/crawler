@@ -1,36 +1,21 @@
 import React, { useState, useRef } from 'react';
-import { ArticleCard } from '../types';
+import * as apiService from '../services/apiService';
 import { Archive as ArchiveIcon, Clock, Trash2 } from 'lucide-react';
 
 interface ArchiveProps {
-  cards: ArticleCard[];
-  onReadMore: (card: ArticleCard) => void;
+  cards: apiService.Article[];
+  onReadMore: (card: apiService.Article) => void;
   onDelete: (cardId: string) => void;
 }
 
 const ArchiveItem: React.FC<{ 
-  card: ArticleCard; 
+  card: apiService.Article; 
   onReadMore: () => void; 
   onDelete: () => void; 
 }> = ({ card, onReadMore, onDelete }) => {
   const [dragX, setDragX] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // Just reset drag on start
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    // Simple logic: we only care about the X displacement relative to the element
-    // However, getting reliable delta requires tracking start X. 
-    // Let's rely on scroll-like behavior logic inside a container usually, 
-    // but here we are implementing a swipeable row.
-    
-    // NOTE: React Touch Events are passive by default in some cases, but 
-    // to do a proper swipe row without a library is tricky.
-    // Let's use a simpler "Drag to reveal" logic by tracking touch points.
-  };
 
   // Re-implementing simplified swipe logic
   const [startX, setStartX] = useState<number | null>(null);
@@ -84,18 +69,18 @@ const ArchiveItem: React.FC<{
         }}
       >
         <img 
-          src={card.imageUrl} 
+          src={card.image_url} 
           alt={card.title} 
           className="w-20 h-20 rounded-xl object-cover shrink-0 bg-gray-200 pointer-events-none"
         />
         <div className="flex-1 min-w-0 pointer-events-none">
           <div className="flex items-center justify-between mb-1">
              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
-              {card.topicQuery}
+              {card.topic_id}
              </span>
              <span className="flex items-center text-xs text-gray-400">
                <Clock size={10} className="mr-1" />
-               {new Date(card.generatedAt).toLocaleDateString()}
+               {card.created_at ? new Date(card.created_at).toLocaleDateString() : 'N/A'}
              </span>
           </div>
           <h3 className="font-bold text-gray-900 line-clamp-2 leading-snug mb-1">
