@@ -18,3 +18,4 @@ venv/
 pubspec.lock
 *.db
 .vscode/
+.github

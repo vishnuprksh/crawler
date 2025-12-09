@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "f32e7de1-c54d-4330-a0f2-b06a2e22d422"
+      }
+    },
+    "android": {
+      "package": "com.vishnuprksh.crawler"
+    }
+  }
+}

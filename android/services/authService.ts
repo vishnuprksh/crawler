@@ -1,7 +1,49 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { Platform } from 'react-native';
+
+let GoogleSignin: any;
+
+if (Platform.OS === 'web') {
+  console.warn('Using mock Google Sign-In for Web');
+  GoogleSignin = {
+    configure: () => {},
+    hasPlayServices: async () => true,
+    signIn: async () => {
+      return {
+        data: {
+          user: {
+            id: 'web-mock-id',
+            email: 'web-mock@example.com',
+            name: 'Web Mock User',
+            photo: 'https://via.placeholder.com/150',
+            familyName: 'User',
+            givenName: 'Web Mock'
+          }
+        }
+      };
+    },
+    getTokens: async () => ({ idToken: 'mock-web-id-token' }),
+    signOut: async () => {},
+  };
+} else {
+  try {
+    const googleSigninModule = require('@react-native-google-signin/google-signin');
+    GoogleSignin = googleSigninModule.GoogleSignin;
+  } catch (error) {
+    console.warn('GoogleSignin module not found, using mock implementation');
+    GoogleSignin = {
+      configure: () => {},
+      hasPlayServices: async () => true,
+      signIn: async () => {
+        throw new Error('Google Sign-In is not supported in Expo Go. Please use a development build.');
+      },
+      getTokens: async () => ({ idToken: '' }),
+      signOut: async () => {},
+    };
+  }
+}
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://192.168.1.100:8000';
 

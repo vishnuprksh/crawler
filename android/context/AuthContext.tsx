@@ -1,5 +1,4 @@
 import React, { useEffect, createContext, useContext, useState } from 'react';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeGoogleSignIn, googleSignOut as signOutGoogle } from '../services/authService';
 
