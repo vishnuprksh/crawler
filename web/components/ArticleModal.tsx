@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, ExternalLink, Calendar } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import * as apiService from '../services/apiService';
 
 interface ArticleModalProps {
@@ -19,7 +20,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-2xl bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] overflow-hidden pointer-events-auto flex flex-col transform transition-transform duration-300">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-gray-900 sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] overflow-hidden pointer-events-auto flex flex-col transform transition-transform duration-300">
         
         {/* Header Image */}
         <div className="relative h-48 sm:h-64 shrink-0">
@@ -49,34 +50,38 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
         </div>
 
         {/* Scrollable Body */}
-        <div className="p-6 overflow-y-auto">
-          <div className="flex items-center text-gray-500 text-sm mb-6 space-x-4">
+        <div className="p-6 overflow-y-auto bg-white dark:bg-gray-900 transition-colors">
+          <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-6 space-x-4">
             <span className="flex items-center">
               <Calendar size={14} className="mr-1" />
               {card.created_at ? new Date(card.created_at).toLocaleDateString() : 'N/A'}
             </span>
           </div>
 
-          <div className="space-y-4 text-gray-800 leading-relaxed mb-8">
-            <p className="font-semibold text-lg text-gray-900 mb-4">{card.summary}</p>
-            <div className="prose prose-indigo max-w-none space-y-4">
-              {card.content?.split('\n').map((line, idx) => {
-                // Handle markdown headers
-                if (line.startsWith('# ')) return <h1 key={idx} className="text-3xl font-bold mt-6 mb-3">{line.slice(2)}</h1>;
-                if (line.startsWith('## ')) return <h2 key={idx} className="text-2xl font-bold mt-5 mb-2">{line.slice(3)}</h2>;
-                if (line.startsWith('### ')) return <h3 key={idx} className="text-xl font-bold mt-4 mb-2">{line.slice(4)}</h3>;
-                if (line.startsWith('- ')) return <li key={idx} className="ml-4 list-disc">{line.slice(2)}</li>;
-                if (line.startsWith('* ')) return <li key={idx} className="ml-4 list-disc">{line.slice(2)}</li>;
-                if (line.trim() === '') return <div key={idx} className="h-2" />;
-                return <p key={idx}>{line}</p>;
-              })}
+          <div className="space-y-4 text-gray-800 dark:text-gray-200 leading-relaxed mb-8">
+            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-4">{card.summary}</p>
+            <div className="prose prose-indigo dark:prose-invert max-w-none">
+              <ReactMarkdown
+                components={{
+                  a: ({node, ...props}) => (
+                    <a {...props} className="text-indigo-600 dark:text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer" />
+                  ),
+                  h1: ({node, ...props}) => <h1 {...props} className="text-3xl font-bold mt-6 mb-3 text-gray-900 dark:text-white" />,
+                  h2: ({node, ...props}) => <h2 {...props} className="text-2xl font-bold mt-5 mb-2 text-gray-900 dark:text-white" />,
+                  h3: ({node, ...props}) => <h3 {...props} className="text-xl font-bold mt-4 mb-2 text-gray-900 dark:text-white" />,
+                  p: ({node, ...props}) => <p {...props} className="mb-4 text-gray-800 dark:text-gray-300" />,
+                  li: ({node, ...props}) => <li {...props} className="ml-4 list-disc text-gray-800 dark:text-gray-300" />,
+                }}
+              >
+                {card.content || ''}
+              </ReactMarkdown>
             </div>
           </div>
 
           {/* Sources Section */}
           {card.citations && card.citations.length > 0 && (
-            <div className="border-t border-gray-100 pt-6 mt-6">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6">
+              <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
                 Sources & References
               </h3>
               <ul className="space-y-2">
@@ -86,7 +91,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
                       href={citation} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors"
+                      className="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium transition-colors"
                     >
                       <ExternalLink size={14} className="mr-2" />
                       <span className="truncate">{citation}</span>

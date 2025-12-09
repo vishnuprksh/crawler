@@ -1,5 +1,8 @@
 // API service for backend communication
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL as string) || 'http://localhost:8000';
+
+// Log the API base URL for debugging
+console.log('[API Service] Using backend URL:', API_BASE_URL);
 
 export interface Article {
   id: string;

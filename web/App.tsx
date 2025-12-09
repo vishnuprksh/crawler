@@ -7,6 +7,7 @@ import Archive from './components/Archive';
 import ArticleModal from './components/ArticleModal';
 import { TabView } from './types';
 import * as apiService from './services/apiService';
+import { ThemeProvider } from './context/ThemeContext';
 
 interface AppState {
   activeCards: apiService.Article[];
@@ -23,12 +24,14 @@ const App: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCard, setSelectedCard] = useState<apiService.Article | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         const [topics, feed, archive] = await Promise.all([
           apiService.getTopics(),
           apiService.getFeed(),
@@ -41,6 +44,7 @@ const App: React.FC = () => {
         });
       } catch (error) {
         console.error('Failed to load data:', error);
+        setError('Failed to load content. Please check your connection.');
       } finally {
         setIsLoading(false);
       }
@@ -51,6 +55,7 @@ const App: React.FC = () => {
 
   const handleAddTopic = async (query: string) => {
     try {
+      setError(null);
       const newTopic = await apiService.createTopic(query, '🔍');
       setState(prev => ({
         ...prev,
@@ -70,6 +75,7 @@ const App: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error adding topic:', error);
+      setError('Failed to add topic. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +83,7 @@ const App: React.FC = () => {
 
   const handleRemoveTopic = async (id: string) => {
     try {
+      setError(null);
       await apiService.removeTopic(id);
       setState(prev => ({
         ...prev,
@@ -84,6 +91,7 @@ const App: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error removing topic:', error);
+      setError('Failed to remove topic.');
     }
   };
 
@@ -102,6 +110,7 @@ const App: React.FC = () => {
       });
     } catch (error) {
       console.error('Error archiving article:', error);
+      setError('Failed to archive article.');
     }
   };
 
@@ -115,6 +124,7 @@ const App: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error marking article as consumed:', error);
+      setError('Failed to discard article.');
     }
   };
 
@@ -128,6 +138,7 @@ const App: React.FC = () => {
       }));
     } catch (error) {
       console.error('Error deleting article:', error);
+      setError('Failed to delete article.');
     }
   };
 
@@ -153,12 +164,19 @@ const App: React.FC = () => {
   };
 
   return (
-    <HashRouter>
-      <Layout activeTab={activeTab} onTabChange={setActiveTab}>
-        {renderContent()}
-      </Layout>
-      <ArticleModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-    </HashRouter>
+    <ThemeProvider>
+      <HashRouter>
+        <Layout 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          error={error}
+          onErrorDismiss={() => setError(null)}
+        >
+          {renderContent()}
+        </Layout>
+        <ArticleModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+      </HashRouter>
+    </ThemeProvider>
   );
 };
 

@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-// For Codespace development: Use the forwarded port URL from the PORTS tab
-// Make sure port 8000 visibility is set to "Public" in VS Code PORTS panel
-// Example: https://redesigned-tribble-xxxxx-8000.app.github.dev
-// For local testing: http://localhost:8000
-export const API_BASE_URL = 'https://redesigned-tribble-69wg7g659vfr95j-8000.app.github.dev';
+// API Base URL Configuration
+// For production: http://31.97.232.229:8000
+// For local development: http://localhost:8000 (or your machine IP for device testing)
+// For Codespace development: https://redesigned-tribble-xxxxx-8000.app.github.dev
+export const API_BASE_URL = 'http://31.97.232.229:8000';
 
 export const ENDPOINTS = {
   TOPICS: '/topics',
