@@ -6,3 +6,6 @@ google-genai
 python-dotenv
 dash
 requests
+python-jose[cryptography]
+passlib[bcrypt]
+google-auth

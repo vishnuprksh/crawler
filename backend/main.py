@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from typing import List
 import models, schemas
 from database import engine, get_db, SessionLocal
@@ -8,29 +9,31 @@ from services.gemini_service import generate_article_content
 import uuid
 import random
 from logging_config import logger, article_logger
+from auth import verify_google_token, create_access_token, get_current_user
+from pydantic import BaseModel
 
 models.Base.metadata.create_all(bind=engine)
 
-def seed_default_topics():
-    db = SessionLocal()
-    try:
-        default_query = "what is happening with russia and ukraine now?"
-        exists = db.query(models.Topic).filter(models.Topic.query == default_query).first()
-        if not exists:
-            new_topic = models.Topic(
-                id=str(uuid.uuid4()),
-                query=default_query,
-                icon="newspaper"
-            )
-            db.add(new_topic)
-            db.commit()
-            logger.info(f"Seeded default topic: {default_query}")
-    except Exception as e:
-        logger.error(f"Error seeding topics: {e}")
-    finally:
-        db.close()
+# Migration helper to add user_id columns if they don't exist
+def run_migrations():
+    with engine.connect() as conn:
+        try:
+            conn.execute(func.text("ALTER TABLE topics ADD COLUMN user_id VARCHAR"))
+            logger.info("Added user_id column to topics table")
+        except Exception:
+            pass # Column likely exists
+            
+        try:
+            conn.execute(func.text("ALTER TABLE articles ADD COLUMN user_id VARCHAR"))
+            logger.info("Added user_id column to articles table")
+        except Exception:
+            pass # Column likely exists
 
-seed_default_topics()
+run_migrations()
+
+def seed_default_topics():
+    # Deprecated: Topics are now seeded per-user upon login
+    pass
 
 app = FastAPI()
 
@@ -41,6 +44,43 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class GoogleAuthRequest(BaseModel):
+    token: str
+
+@app.post("/auth/google", response_model=schemas.Token)
+async def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
+    id_info = verify_google_token(request.token)
+    user_id = id_info['sub']
+    email = id_info['email']
+    name = id_info.get('name')
+    picture = id_info.get('picture')
+    
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        user = models.User(id=user_id, email=email, name=name, picture=picture)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+        # Seed default topic for new user
+        default_query = "what is happening with russia and ukraine now?"
+        new_topic = models.Topic(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            query=default_query,
+            icon="newspaper"
+        )
+        db.add(new_topic)
+        db.commit()
+    
+    access_token = create_access_token(data={"sub": user_id})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/auth/me", response_model=schemas.User)
+async def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
 
 def cleanup_old_articles():
     """Delete oldest consumed/archived articles when total word count exceeds 5000."""
@@ -106,7 +146,7 @@ def ensure_article_buffer():
         if count < target_count:
             needed = target_count - count
             topics = db.query(models.Topic).all()
-            topics_data = [{"id": t.id, "query": t.query} for t in topics]
+            topics_data = [{"id": t.id, "query": t.query, "user_id": t.user_id} for t in topics]
             logger.info(f"Buffer low: {count}/{target_count} articles. Need {needed} more.")
         else:
             logger.debug(f"Buffer healthy: {count}/{target_count} articles.")
@@ -148,6 +188,7 @@ def ensure_article_buffer():
                     new_article = models.ArticleCard(
                         id=str(uuid.uuid4()),
                         topic_id=topic_data["id"],
+                        user_id=topic_data.get("user_id"),
                         title=content.get("title"),
                         summary=content.get("summary"),
                         content=article_content,
@@ -215,27 +256,83 @@ def read_root():
 
 # Topics
 @app.get("/topics", response_model=List[schemas.Topic])
-def get_topics(db: Session = Depends(get_db)):
-    logger.debug("Fetching all topics")
-    return db.query(models.Topic).all()
+def get_topics(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.debug(f"Fetching topics for user {current_user.id}")
+    return db.query(models.Topic).filter(models.Topic.user_id == current_user.id).all()
 
 @app.post("/topics", response_model=schemas.Topic)
-def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db)):
-    logger.info(f"Creating new topic: {topic.query}")
-    db_topic = models.Topic(**topic.dict())
+def create_topic(topic: schemas.TopicCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.info(f"Creating new topic: {topic.query} for user {current_user.id}")
+    db_topic = models.Topic(**topic.dict(), user_id=current_user.id)
     db.add(db_topic)
     db.commit()
     db.refresh(db_topic)
     return db_topic
 
 @app.delete("/topics/{topic_id}")
-def delete_topic(topic_id: str, db: Session = Depends(get_db)):
+def delete_topic(topic_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     logger.info(f"Deleting topic: {topic_id}")
-    db_topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+    db_topic = db.query(models.Topic).filter(models.Topic.id == topic_id, models.Topic.user_id == current_user.id).first()
     if not db_topic:
         logger.warning(f"Topic not found for deletion: {topic_id}")
         raise HTTPException(status_code=404, detail="Topic not found")
     db.delete(db_topic)
+    db.commit()
+    return {"ok": True}
+
+# Articles
+@app.get("/feed", response_model=List[schemas.ArticleCard])
+def get_feed(background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.debug(f"Fetching article feed for user {current_user.id}")
+    articles = db.query(models.ArticleCard).filter(
+        models.ArticleCard.user_id == current_user.id,
+        models.ArticleCard.is_archived == False,
+        models.ArticleCard.is_consumed == False
+    ).order_by(func.random()).limit(1).all()
+    
+    # Trigger buffer check
+    background_tasks.add_task(ensure_article_buffer)
+    
+    return articles
+
+@app.post("/articles/{article_id}/swipe")
+def swipe_article(article_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.info(f"Swiping article: {article_id}")
+    article = db.query(models.ArticleCard).filter(models.ArticleCard.id == article_id, models.ArticleCard.user_id == current_user.id).first()
+    if not article:
+        logger.warning(f"Article not found for swipe: {article_id}")
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    article.is_consumed = True
+    db.commit()
+    
+    background_tasks.add_task(ensure_article_buffer)
+    return {"ok": True}
+
+@app.get("/archive", response_model=List[schemas.ArticleCard])
+def get_archive(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.debug("Fetching archive")
+    return db.query(models.ArticleCard).filter(models.ArticleCard.user_id == current_user.id, models.ArticleCard.is_archived == True).all()
+
+@app.post("/articles/{article_id}/archive")
+def archive_article(article_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.info(f"Archiving article: {article_id}")
+    article = db.query(models.ArticleCard).filter(models.ArticleCard.id == article_id, models.ArticleCard.user_id == current_user.id).first()
+    if not article:
+        logger.warning(f"Article not found for archive: {article_id}")
+        raise HTTPException(status_code=404, detail="Article not found")
+    article.is_archived = True
+    db.commit()
+    return {"ok": True}
+
+@app.delete("/articles/{article_id}")
+def delete_article(article_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    logger.info(f"Deleting article: {article_id}")
+    article = db.query(models.ArticleCard).filter(models.ArticleCard.id == article_id, models.ArticleCard.user_id == current_user.id).first()
+    if not article:
+        logger.warning(f"Article not found for deletion: {article_id}")
+        raise HTTPException(status_code=404, detail="Article not found")
+    db.delete(article)
     db.commit()
     return {"ok": True}
 
@@ -246,7 +343,7 @@ def get_feed(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     articles = db.query(models.ArticleCard).filter(
         models.ArticleCard.is_archived == False,
         models.ArticleCard.is_consumed == False
-    ).limit(5).all()
+    ).order_by(func.random()).limit(1).all()
     
     # Trigger buffer check
     background_tasks.add_task(ensure_article_buffer)
@@ -296,9 +393,9 @@ def delete_article(article_id: str, db: Session = Depends(get_db)):
     return {"ok": True}
 
 @app.post("/generate/{topic_id}")
-def generate_article(topic_id: str, db: Session = Depends(get_db)):
+def generate_article(topic_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     logger.info(f"Manual generation requested for topic: {topic_id}")
-    topic = db.query(models.Topic).filter(models.Topic.id == topic_id).first()
+    topic = db.query(models.Topic).filter(models.Topic.id == topic_id, models.Topic.user_id == current_user.id).first()
     if not topic:
         logger.warning(f"Topic not found for generation: {topic_id}")
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -311,6 +408,7 @@ def generate_article(topic_id: str, db: Session = Depends(get_db)):
     new_article = models.ArticleCard(
         id=str(uuid.uuid4()),
         topic_id=topic.id,
+        user_id=current_user.id,
         title=content.get("title"),
         summary=content.get("summary"),
         source_url=content.get("source_url"),
@@ -321,6 +419,7 @@ def generate_article(topic_id: str, db: Session = Depends(get_db)):
     
     db.add(new_article)
     db.commit()
+    return {"ok": True}
     db.refresh(new_article)
     article_logger.info(f"Manually generated and saved article: '{new_article.title}'")
     return new_article

@@ -1,8 +1,17 @@
+import axios from 'axios';
+
 // API service for backend communication
 const API_BASE_URL = (import.meta.env.VITE_BACKEND_URL as string) || 'http://localhost:8000';
 
 // Log the API base URL for debugging
 console.log('[API Service] Using backend URL:', API_BASE_URL);
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export interface Article {
   id: string;
@@ -29,69 +38,46 @@ export interface Topic {
 
 // Topics API
 export async function getTopics(): Promise<Topic[]> {
-  const response = await fetch(`${API_BASE_URL}/topics`);
-  if (!response.ok) throw new Error('Failed to fetch topics');
-  return response.json();
+  const response = await api.get('/topics');
+  return response.data;
 }
 
 export async function createTopic(query: string, icon: string): Promise<Topic> {
-  const response = await fetch(`${API_BASE_URL}/topics`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: generateId(), query, icon })
-  });
-  if (!response.ok) throw new Error('Failed to create topic');
-  return response.json();
+  const response = await api.post('/topics', { id: generateId(), query, icon });
+  return response.data;
 }
 
 export async function removeTopic(topicId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/topics/${topicId}`, {
-    method: 'DELETE'
-  });
-  if (!response.ok) throw new Error('Failed to remove topic');
+  await api.delete(`/topics/${topicId}`);
 }
 
 // Feed API
 export async function getFeed(): Promise<Article[]> {
-  const response = await fetch(`${API_BASE_URL}/feed`);
-  if (!response.ok) throw new Error('Failed to fetch feed');
-  return response.json();
+  const response = await api.get('/feed');
+  return response.data;
 }
 
 // Archive API
 export async function getArchive(): Promise<Article[]> {
-  const response = await fetch(`${API_BASE_URL}/archive`);
-  if (!response.ok) throw new Error('Failed to fetch archive');
-  return response.json();
+  const response = await api.get('/archive');
+  return response.data;
 }
 
 // Article Actions
 export async function archiveArticle(articleId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/archive`, {
-    method: 'POST'
-  });
-  if (!response.ok) throw new Error('Failed to archive article');
+  await api.post(`/articles/${articleId}/archive`);
 }
 
 export async function markArticleAsConsumed(articleId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/articles/${articleId}/swipe`, {
-    method: 'POST'
-  });
-  if (!response.ok) throw new Error('Failed to mark article as consumed');
+  await api.post(`/articles/${articleId}/swipe`);
 }
 
 export async function deleteArticle(articleId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/articles/${articleId}`, {
-    method: 'DELETE'
-  });
-  if (!response.ok) throw new Error('Failed to delete article');
+  await api.delete(`/articles/${articleId}`);
 }
 
 export async function generateArticle(topicId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/generate/${topicId}`, {
-    method: 'POST'
-  });
-  if (!response.ok) throw new Error('Failed to generate article');
+  await api.post(`/generate/${topicId}`);
 }
 
 // Helper function to generate unique ID

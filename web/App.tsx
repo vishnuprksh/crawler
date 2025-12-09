@@ -8,6 +8,8 @@ import ArticleModal from './components/ArticleModal';
 import { TabView } from './types';
 import * as apiService from './services/apiService';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Login } from './components/Login';
 
 interface AppState {
   activeCards: apiService.Article[];
@@ -15,7 +17,8 @@ interface AppState {
   topics: apiService.Topic[];
 }
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<TabView>('feed');
   const [state, setState] = useState<AppState>({
     activeCards: [],
@@ -28,6 +31,8 @@ const App: React.FC = () => {
 
   // Load initial data
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const loadData = async () => {
       try {
         setIsLoading(true);
@@ -51,7 +56,11 @@ const App: React.FC = () => {
     };
 
     loadData();
-  }, []);
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
 
   const handleAddTopic = async (query: string) => {
     try {
@@ -164,18 +173,26 @@ const App: React.FC = () => {
   };
 
   return (
+    <HashRouter>
+      <Layout 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        error={error}
+        onErrorDismiss={() => setError(null)}
+      >
+        {renderContent()}
+      </Layout>
+      <ArticleModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+    </HashRouter>
+  );
+};
+
+const App: React.FC = () => {
+  return (
     <ThemeProvider>
-      <HashRouter>
-        <Layout 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          error={error}
-          onErrorDismiss={() => setError(null)}
-        >
-          {renderContent()}
-        </Layout>
-        <ArticleModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-      </HashRouter>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
     </ThemeProvider>
   );
 };
