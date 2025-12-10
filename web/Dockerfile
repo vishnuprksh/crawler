@@ -3,6 +3,18 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Install system dependencies for canvas
+RUN apk add --no-cache \
+    cairo-dev \
+    jpeg-dev \
+    giflib-dev \
+    librsvg-dev \
+    pango-dev \
+    pixman-dev \
+    python3 \
+    make \
+    g++
+
 # Copy package files
 COPY package*.json ./
 
