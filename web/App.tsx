@@ -5,6 +5,7 @@ import Feed from './components/Feed';
 import TopicManager from './components/TopicManager';
 import Archive from './components/Archive';
 import ArticleModal from './components/ArticleModal';
+import Settings from './components/Settings';
 import { TabView } from './types';
 import * as apiService from './services/apiService';
 import { ThemeProvider } from './context/ThemeContext';
@@ -167,6 +168,8 @@ const MainApp: React.FC = () => {
         return <TopicManager topics={state.topics} onAddTopic={handleAddTopic} onRemoveTopic={handleRemoveTopic} />;
       case 'archive':
         return <Archive cards={state.archivedCards} onReadMore={setSelectedCard} onDelete={handleDeleteFromArchive} />;
+      case 'settings':
+        return <Settings />;
       default:
         return null;
     }

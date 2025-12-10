@@ -174,7 +174,7 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
           </div>
 
           {/* Image Area */}
-          <div className="relative h-1/2 shrink-0 pointer-events-none">
+          <div className="relative h-3/5 shrink-0 pointer-events-none">
             <img 
               src={activeCard.image_url} 
               alt={activeCard.title} 
@@ -182,27 +182,27 @@ const Feed: React.FC<FeedProps> = ({ cards, isLoading, onReadMore, onArchive, on
               draggable={false}
             />
             <div className="absolute top-4 left-4">
-               <span className="px-3 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur text-xs font-bold text-indigo-600 dark:text-indigo-400 rounded-full shadow-sm uppercase tracking-wider">
+               <span className="px-3 py-1 bg-black/50 backdrop-blur-md text-xs font-bold text-white rounded-full shadow-sm uppercase tracking-wider border border-white/20">
                 {activeCard.topic_id || 'Topic'}
                </span>
             </div>
-            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-white dark:from-gray-800 to-transparent" />
+            <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-white dark:from-gray-800 via-white/80 dark:via-gray-800/80 to-transparent" />
           </div>
           
           {/* Content Area */}
-          <div className="p-6 flex-1 flex flex-col justify-between pointer-events-none bg-white dark:bg-gray-800 transition-colors">
+          <div className="px-6 pb-6 flex-1 flex flex-col justify-between pointer-events-none bg-white dark:bg-gray-800 transition-colors -mt-12 relative z-10">
             <div>
-              <h2 className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight mb-2 line-clamp-3">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white leading-tight mb-3 line-clamp-3 drop-shadow-sm">
                 {activeCard.title}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300 line-clamp-3 text-sm leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 line-clamp-4 text-sm leading-relaxed font-medium">
                 {activeCard.summary}
               </p>
             </div>
             
-            <div className="flex items-center justify-center pt-4 text-gray-400 dark:text-gray-500 text-xs font-medium uppercase tracking-widest animate-pulse">
-              <Info size={12} className="mr-1" />
-              Tap to read more
+            <div className="flex items-center justify-center pt-4 text-indigo-500 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest animate-pulse">
+              <Info size={14} className="mr-1.5" />
+              Tap to read full story
             </div>
           </div>
         </div>

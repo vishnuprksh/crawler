@@ -1,7 +1,6 @@
 import React from 'react';
-import { Home, List, Archive as ArchiveIcon, Moon, Sun, XCircle } from 'lucide-react';
+import { Home, List, Archive as ArchiveIcon, Settings as SettingsIcon, XCircle } from 'lucide-react';
 import { TabView } from '../types';
-import { useTheme } from '../context/ThemeContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,8 +11,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, error, onErrorDismiss }) => {
-  const { theme, toggleTheme } = useTheme();
-
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col overflow-hidden transition-colors duration-200">
       {/* Error Banner */}
@@ -41,15 +38,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, error
           </div>
         </div>
       )}
-
-      {/* Theme Toggle - Absolute Top Right */}
-      <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 z-40 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur shadow-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        aria-label="Toggle theme"
-      >
-        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-      </button>
 
       {/* Main Content Area */}
       <main className="flex-1 w-full overflow-y-auto no-scrollbar relative">
@@ -87,6 +75,16 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, error
           >
             <ArchiveIcon size={24} strokeWidth={activeTab === 'archive' ? 2.5 : 2} />
             <span className="text-[10px] font-bold tracking-wide">Archive</span>
+          </button>
+
+          <button
+            onClick={() => onTabChange('settings')}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
+              activeTab === 'settings' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+            }`}
+          >
+            <SettingsIcon size={24} strokeWidth={activeTab === 'settings' ? 2.5 : 2} />
+            <span className="text-[10px] font-bold tracking-wide">Settings</span>
           </button>
         </div>
       </div>

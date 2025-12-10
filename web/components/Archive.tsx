@@ -36,6 +36,33 @@ const ArchiveItem: React.FC<{
   };
 
   const onTouchEnd = () => {
+    handleEnd();
+  };
+
+  // Mouse handlers
+  const onMouseDown = (e: React.MouseEvent) => {
+    setStartX(e.clientX);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (startX === null) return;
+    const currentX = e.clientX;
+    const diff = currentX - startX;
+    
+    if (diff < 0) {
+       setDragX(diff);
+    }
+  };
+
+  const onMouseUp = () => {
+    handleEnd();
+  };
+
+  const onMouseLeave = () => {
+    if (startX !== null) handleEnd();
+  };
+
+  const handleEnd = () => {
     if (dragX < -100) {
       // Trigger delete
       setIsDeleting(true);
@@ -64,6 +91,10 @@ const ArchiveItem: React.FC<{
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
         onClick={() => {
             if (dragX === 0) onReadMore();
         }}
@@ -87,7 +118,7 @@ const ArchiveItem: React.FC<{
             {card.title}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
-            {card.teaser}
+            {card.summary}
           </p>
         </div>
       </div>
@@ -97,7 +128,11 @@ const ArchiveItem: React.FC<{
 
 const Archive: React.FC<ArchiveProps> = ({ cards, onReadMore, onDelete }) => {
   // Sort by date desc
-  const sortedCards = [...cards].sort((a, b) => b.generatedAt - a.generatedAt);
+  const sortedCards = [...cards].sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return dateB - dateA;
+  });
 
   return (
     <div className="pb-24 max-w-xl mx-auto px-4 pt-6">

@@ -20,10 +20,10 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-2xl bg-white dark:bg-gray-900 sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] overflow-hidden pointer-events-auto flex flex-col transform transition-transform duration-300">
+      <div className="relative w-full max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-white dark:bg-gray-900 sm:rounded-2xl lg:rounded-3xl rounded-t-2xl shadow-2xl max-h-[90vh] overflow-hidden pointer-events-auto flex flex-col transform transition-transform duration-300">
         
         {/* Header Image */}
-        <div className="relative h-48 sm:h-64 shrink-0">
+        <div className="relative h-48 sm:h-64 lg:h-80 shrink-0">
           <img 
             src={card.image_url} 
             alt={card.title} 
@@ -50,7 +50,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
         </div>
 
         {/* Scrollable Body */}
-        <div className="p-6 overflow-y-auto bg-white dark:bg-gray-900 transition-colors">
+        <div className="p-4 sm:p-6 lg:p-8 overflow-y-auto bg-white dark:bg-gray-900 transition-colors">
           <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-6 space-x-4">
             <span className="flex items-center">
               <Calendar size={14} className="mr-1" />
@@ -79,28 +79,39 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
           </div>
 
           {/* Sources Section */}
-          {card.citations && card.citations.length > 0 && (
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6">
-              <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Sources & References
-              </h3>
-              <ul className="space-y-2">
-                {card.citations.map((citation, idx) => (
-                  <li key={idx}>
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-6">
+            <h3 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+              Sources & References
+            </h3>
+            <ul className="space-y-2">
+              {card.source_url && (
+                 <li>
                     <a 
-                      href={citation} 
+                      href={card.source_url} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium transition-colors"
                     >
                       <ExternalLink size={14} className="mr-2" />
-                      <span className="truncate">{citation}</span>
+                      <span className="truncate">Original Source</span>
                     </a>
                   </li>
-                ))}
-              </ul>
-            </div>
-          )}
+              )}
+              {card.citations && card.citations.map((citation, idx) => (
+                <li key={idx}>
+                  <a 
+                    href={citation} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-medium transition-colors"
+                  >
+                    <ExternalLink size={14} className="mr-2" />
+                    <span className="truncate">{citation}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

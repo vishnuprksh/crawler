@@ -21,9 +21,14 @@ const TopicManager: React.FC<TopicManagerProps> = ({ topics, onAddTopic, onRemov
 
   return (
     <div className="pb-24 max-w-xl mx-auto px-4 pt-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-2">Your Radar</h1>
-        <p className="text-gray-500 dark:text-gray-400">Define what the collector should look for.</p>
+      <div className="mb-8 flex items-end justify-between">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-2">Your Radar</h1>
+          <p className="text-gray-500 dark:text-gray-400">Define what the collector should look for.</p>
+        </div>
+        <div className="bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full text-indigo-600 dark:text-indigo-300 font-bold text-sm border border-indigo-100 dark:border-indigo-800 mb-2">
+          {topics.length} Active
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="mb-8 relative">

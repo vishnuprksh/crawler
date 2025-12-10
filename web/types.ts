@@ -30,4 +30,4 @@ export interface AppState {
   lastFetchDate: string | null;
 }
 
-export type TabView = 'feed' | 'topics' | 'archive';
+export type TabView = 'feed' | 'topics' | 'archive' | 'settings';
