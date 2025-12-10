@@ -31,15 +31,8 @@ generate_content_config = types.GenerateContentConfig(
 MODEL_NAME = "gemini-3-pro-preview"
 
 def generate_article_image(title: str, summary: str) -> str:
-    """Generate an image for the article based on title and summary. Returns a placeholder URL."""
-    # Directly return a placeholder image as requested
-    return _get_placeholder_image(title)
-
-def _get_placeholder_image(seed: str) -> str:
-    """Generate a deterministic placeholder image URL using the seed."""
-    import hashlib
-    seed_hash = hashlib.md5(seed.encode()).hexdigest()[:8]
-    return f"https://picsum.photos/seed/{seed_hash}/400/200"
+    """Generate an image for the article based on title and summary. Returns None to use black screens."""
+    return None
 
 def generate_article_content(topic_query: str, previous_articles: list = None):
     if not GEMINI_API_KEY:
@@ -137,11 +130,8 @@ def generate_article_content(topic_query: str, previous_articles: list = None):
         final_citations = list(existing_citations.union(all_citations))
         content['citations'] = final_citations
         
-        # Generate image
-        if content.get('title') and content.get('summary'):
-            image_url = generate_article_image(content['title'], content['summary'])
-            if image_url:
-                content['image_url'] = image_url
+        # No image generation - frontend will use black backgrounds
+        content['image_url'] = None
         
         article_logger.info(f"Successfully generated article: '{content.get('title')}' for topic: {topic_query}")
         return content

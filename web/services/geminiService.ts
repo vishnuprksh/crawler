@@ -135,7 +135,6 @@ export async function generateCardsForTopic(topicId: string, query: string): Pro
     sources: searchResult.sources, // Attach all sources for the topic to each card (simplification)
     isRead: false,
     isArchived: false,
-    // Assign a random placeholder image based on a hash of the title to keep it consistent
-    imageUrl: `https://picsum.photos/seed/${item.title.replace(/\s/g, '').slice(0, 10)}/600/400`
+    imageUrl: '' // No placeholder images - frontend uses black backgrounds
   }));
 }

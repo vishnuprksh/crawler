@@ -13,97 +13,13 @@ const ArchiveItem: React.FC<{
   onReadMore: () => void; 
   onDelete: () => void; 
 }> = ({ card, onReadMore, onDelete }) => {
-  const [dragX, setDragX] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const itemRef = useRef<HTMLDivElement>(null);
-
-  // Re-implementing simplified swipe logic
-  const [startX, setStartX] = useState<number | null>(null);
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setStartX(e.touches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (startX === null) return;
-    const currentX = e.touches[0].clientX;
-    const diff = currentX - startX;
-    
-    // Only allow dragging left (negative diff)
-    if (diff < 0) {
-       setDragX(diff);
-    }
-  };
-
-  const onTouchEnd = () => {
-    handleEnd();
-  };
-
-  // Mouse handlers
-  const onMouseDown = (e: React.MouseEvent) => {
-    setStartX(e.clientX);
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (startX === null) return;
-    const currentX = e.clientX;
-    const diff = currentX - startX;
-    
-    if (diff < 0) {
-       setDragX(diff);
-    }
-  };
-
-  const onMouseUp = () => {
-    handleEnd();
-  };
-
-  const onMouseLeave = () => {
-    if (startX !== null) handleEnd();
-  };
-
-  const handleEnd = () => {
-    if (dragX < -100) {
-      // Trigger delete
-      setIsDeleting(true);
-      setDragX(-1000); // Animate off
-      setTimeout(() => onDelete(), 300);
-    } else {
-      // Snap back
-      setDragX(0);
-    }
-    setStartX(null);
-  };
-
-  if (isDeleting) return null; // Or keep rendering with class to animate height to 0
-
   return (
-    <div className="relative overflow-hidden rounded-2xl mb-4 touch-pan-y select-none group">
-      {/* Background (Delete Action) */}
-      <div className="absolute inset-0 bg-red-500 flex items-center justify-end px-6 rounded-2xl">
-        <Trash2 className="text-white" size={24} />
-      </div>
-
-      {/* Foreground Content */}
+    <div className="relative overflow-hidden rounded-2xl mb-4 group">
       <div 
-        className="relative bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-start space-x-4 transition-transform duration-200 ease-out active:cursor-grabbing"
-        style={{ transform: `translateX(${dragX}px)` }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseLeave}
-        onClick={() => {
-            if (dragX === 0) onReadMore();
-        }}
+        className="relative bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-start space-x-4 cursor-pointer hover:shadow-md transition-all"
+        onClick={onReadMore}
       >
-        <img 
-          src={card.image_url} 
-          alt={card.title} 
-          className="w-20 h-20 rounded-xl object-cover shrink-0 bg-gray-200 dark:bg-gray-700 pointer-events-none"
-        />
+        <div className="w-20 h-20 rounded-xl shrink-0 bg-black pointer-events-none" />
         <div className="flex-1 min-w-0 pointer-events-none">
           <div className="flex items-center justify-between mb-1">
              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
@@ -121,6 +37,16 @@ const ArchiveItem: React.FC<{
             {card.summary}
           </p>
         </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="shrink-0 w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center transition-colors group-hover:scale-110 active:scale-95"
+          aria-label="Delete"
+        >
+          <Trash2 size={18} className="text-red-500 dark:text-red-400" />
+        </button>
       </div>
     </div>
   );
@@ -145,7 +71,7 @@ const Archive: React.FC<ArchiveProps> = ({ cards, onReadMore, onDelete }) => {
         <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-3xl">
           <ArchiveIcon size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
           <p className="text-gray-500 dark:text-gray-400 font-medium">No archived articles yet.</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Swipe right on cards to save them here.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Tap the archive button to save articles here.</p>
         </div>
       ) : (
         <div className="space-y-1">

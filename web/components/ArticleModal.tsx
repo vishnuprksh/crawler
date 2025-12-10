@@ -24,11 +24,7 @@ const ArticleModal: React.FC<ArticleModalProps> = ({ card, onClose }) => {
         
         {/* Header Image */}
         <div className="relative h-48 sm:h-64 lg:h-80 shrink-0">
-          <img 
-            src={card.image_url} 
-            alt={card.title} 
-            className="w-full h-full object-cover"
-          />
+          <div className="w-full h-full bg-black" />
           <button 
             onClick={(e) => {
               e.stopPropagation();

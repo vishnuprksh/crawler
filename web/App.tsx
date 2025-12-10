@@ -12,65 +12,66 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './components/Login';
 
-interface AppState {
-  activeCards: apiService.Article[];
-  archivedCards: apiService.Article[];
-  topics: apiService.Topic[];
-}
-
 const MainApp: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const [activeTab, setActiveTab] = useState<TabView>('feed');
-  const [state, setState] = useState<AppState>({
-    activeCards: [],
-    archivedCards: [],
-    topics: [],
-  });
+  const [activeCards, setActiveCards] = useState<apiService.Article[]>([]);
+  const [archivedCards, setArchivedCards] = useState<apiService.Article[]>([]);
+  const [topics, setTopics] = useState<apiService.Topic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<apiService.Article | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Load initial data
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !token) return;
 
     const loadData = async () => {
       try {
-        setIsLoading(true);
+        setIsInitialLoading(true);
         setError(null);
+        
         const [topics, feed, archive] = await Promise.all([
           apiService.getTopics(),
           apiService.getFeed(),
           apiService.getArchive(),
         ]);
-        setState({
-          topics,
-          activeCards: feed,
-          archivedCards: archive,
-        });
+        
+        setTopics(topics);
+        setActiveCards(feed);
+        setArchivedCards(archive);
       } catch (error) {
         console.error('Failed to load data:', error);
-        setError('Failed to load content. Please check your connection.');
       } finally {
-        setIsLoading(false);
+        setIsInitialLoading(false);
       }
     };
 
     loadData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, token]);
 
   if (!isAuthenticated) {
     return <Login />;
+  }
+
+  // Show loading screen until all initial data is loaded
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-indigo-200 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your content...</p>
+        </div>
+      </div>
+    );
   }
 
   const handleAddTopic = async (query: string) => {
     try {
       setError(null);
       const newTopic = await apiService.createTopic(query, '🔍');
-      setState(prev => ({
-        ...prev,
-        topics: [...prev.topics, newTopic],
-      }));
+      setTopics(prev => [...prev, newTopic]);
       setActiveTab('feed');
 
       // Generate article for new topic
@@ -79,10 +80,7 @@ const MainApp: React.FC = () => {
       
       // Refresh feed
       const feed = await apiService.getFeed();
-      setState(prev => ({
-        ...prev,
-        activeCards: feed,
-      }));
+      setActiveCards(feed);
     } catch (error) {
       console.error('Error adding topic:', error);
       setError('Failed to add topic. Please try again.');
@@ -95,10 +93,7 @@ const MainApp: React.FC = () => {
     try {
       setError(null);
       await apiService.removeTopic(id);
-      setState(prev => ({
-        ...prev,
-        topics: prev.topics.filter(t => t.id !== id),
-      }));
+      setTopics(prev => prev.filter(t => t.id !== id));
     } catch (error) {
       console.error('Error removing topic:', error);
       setError('Failed to remove topic.');
@@ -109,14 +104,11 @@ const MainApp: React.FC = () => {
   const handleArchiveCard = async (cardId: string) => {
     try {
       await apiService.archiveArticle(cardId);
-      setState(prev => {
-        const card = prev.activeCards.find(c => c.id === cardId);
+      setActiveCards(prev => {
+        const card = prev.find(c => c.id === cardId);
         if (!card) return prev;
-        return {
-          ...prev,
-          activeCards: prev.activeCards.filter(c => c.id !== cardId),
-          archivedCards: [{ ...card, is_archived: true }, ...prev.archivedCards],
-        };
+        setArchivedCards(archived => [{ ...card, is_archived: true }, ...archived]);
+        return prev.filter(c => c.id !== cardId);
       });
     } catch (error) {
       console.error('Error archiving article:', error);
@@ -128,10 +120,7 @@ const MainApp: React.FC = () => {
   const handleDiscardCard = async (cardId: string) => {
     try {
       await apiService.markArticleAsConsumed(cardId);
-      setState(prev => ({
-        ...prev,
-        activeCards: prev.activeCards.filter(c => c.id !== cardId),
-      }));
+      setActiveCards(prev => prev.filter(c => c.id !== cardId));
     } catch (error) {
       console.error('Error marking article as consumed:', error);
       setError('Failed to discard article.');
@@ -142,10 +131,7 @@ const MainApp: React.FC = () => {
   const handleDeleteFromArchive = async (cardId: string) => {
     try {
       await apiService.deleteArticle(cardId);
-      setState(prev => ({
-        ...prev,
-        archivedCards: prev.archivedCards.filter(c => c.id !== cardId),
-      }));
+      setArchivedCards(prev => prev.filter(c => c.id !== cardId));
     } catch (error) {
       console.error('Error deleting article:', error);
       setError('Failed to delete article.');
@@ -157,7 +143,7 @@ const MainApp: React.FC = () => {
       case 'feed':
         return (
           <Feed 
-            cards={state.activeCards} 
+            cards={activeCards} 
             isLoading={isLoading} 
             onReadMore={setSelectedCard} 
             onArchive={handleArchiveCard} 
@@ -165,9 +151,9 @@ const MainApp: React.FC = () => {
           />
         );
       case 'topics':
-        return <TopicManager topics={state.topics} onAddTopic={handleAddTopic} onRemoveTopic={handleRemoveTopic} />;
+        return <TopicManager topics={topics} onAddTopic={handleAddTopic} onRemoveTopic={handleRemoveTopic} />;
       case 'archive':
-        return <Archive cards={state.archivedCards} onReadMore={setSelectedCard} onDelete={handleDeleteFromArchive} />;
+        return <Archive cards={archivedCards} onReadMore={setSelectedCard} onDelete={handleDeleteFromArchive} />;
       case 'settings':
         return <Settings />;
       default:

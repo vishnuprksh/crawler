@@ -9,3 +9,8 @@
 - [2025-12-10]: In monorepos, install dependencies in the same package.json where their peer dependencies (like React) exist, not at repository root, to prevent multiple package instances causing "Invalid hook call" errors.
 - [2025-12-10]: When implementing PWA features, ensure the service worker and manifest files are in the `public/` directory so Vite copies them to `dist/` during build; configure `publicDir: 'public'` in `vite.config.ts`.
 - [2025-12-10]: When editing JSX conditionals, always ensure opening and closing braces match the intended component structure—remove conditional wrapping if the content should always render to avoid "character is not valid inside JSX element" errors.
+- [2025-12-10]: Always check package.json for missing dependencies before importing libraries.
+- [2025-12-10]: Always use import type for TypeScript interfaces and types that are not runtime values.
+- [2025-12-10]: Always use the correct syntax for TypeScript imports when mixing value and type imports: import { value, type Type } from 'module';
+- [2025-12-10]: When importing a type exported from another module, always use `import type` or `import { type TypeName }` to avoid runtime errors where the bundler expects a value export.
+- [2025-12-10]: For real-time content loading, use separate state variables instead of nested objects to ensure React re-renders properly when API data arrives. Show loading immediately on app open, display content as soon as API succeeds, and show error only after 3-second delay on failure.

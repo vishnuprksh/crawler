@@ -19,6 +19,7 @@
     },
     "android": {
       "package": "com.BrightTomorrow.crawler",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -33,7 +34,12 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-google-signin/google-signin"
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.143497994262-um82rk2bphabp8bjsojig4qn1vu4cdeh"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -41,7 +47,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "0aa825e0-dbbb-4308-85d1-0fbe68a9ae05"
+        "projectId": "c8da5c3f-3a7b-4aa9-ac15-90418969e40e"
       }
     },
     "owner": "vishnuprksh"

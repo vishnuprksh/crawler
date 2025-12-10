@@ -1,6 +1,6 @@
 // Service Worker for Crawler PWA
-const CACHE_NAME = 'crawler-v1';
-const RUNTIME_CACHE = 'crawler-runtime-v1';
+const CACHE_NAME = 'crawler-v2';
+const RUNTIME_CACHE = 'crawler-runtime-v2';
 
 // Assets to cache immediately
 const PRECACHE_ASSETS = [
@@ -50,9 +50,8 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests
   if (url.origin !== location.origin) {
-    // For CDN assets (Tailwind, Google Fonts), use network-first
-    if (url.hostname.includes('cdn.tailwindcss.com') || 
-        url.hostname.includes('fonts.googleapis.com') ||
+    // For CDN assets (Google Fonts), use network-first
+    if (url.hostname.includes('fonts.googleapis.com') ||
         url.hostname.includes('fonts.gstatic.com')) {
       event.respondWith(
         fetch(request)

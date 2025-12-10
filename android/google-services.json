@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "176701484422",
+    "project_id": "crawler-acfe1",
+    "storage_bucket": "crawler-acfe1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176701484422:android:01d90bdb3fb7ce082e1007",
+        "android_client_info": {
+          "package_name": "com.BrightTomorrow.crawler"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwi2gEkIWF6g1-R3j2IloCPP6q3q9wyGY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
