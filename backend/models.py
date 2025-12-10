@@ -19,7 +19,7 @@ class Topic(Base):
     __tablename__ = "topics"
 
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
     query = Column(String, index=True)
     icon = Column(String)
     
@@ -30,7 +30,7 @@ class ArticleCard(Base):
     __tablename__ = "articles"
 
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
     topic_id = Column(String, ForeignKey("topics.id"))
     title = Column(String)
     summary = Column(String)

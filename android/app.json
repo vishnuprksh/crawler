@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "android",
-    "slug": "android",
+    "name": "crawler",
+    "slug": "crawler",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "android",
+    "scheme": "crawler",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -41,8 +41,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "2d966ec4-c1a7-46d3-b657-835dfca63103"
+        "projectId": "0aa825e0-dbbb-4308-85d1-0fbe68a9ae05"
       }
-    }
+    },
+    "owner": "vishnuprksh"
   }
 }

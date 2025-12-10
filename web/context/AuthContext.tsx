@@ -20,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 // Replace with your actual Google Client ID
-const GOOGLE_CLIENT_ID = "143497994262-um82rk2bphabp8bjsojig4qn1vu4cdeh.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

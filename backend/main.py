@@ -14,23 +14,6 @@ from pydantic import BaseModel
 
 models.Base.metadata.create_all(bind=engine)
 
-# Migration helper to add user_id columns if they don't exist
-def run_migrations():
-    with engine.connect() as conn:
-        try:
-            conn.execute(func.text("ALTER TABLE topics ADD COLUMN user_id VARCHAR"))
-            logger.info("Added user_id column to topics table")
-        except Exception:
-            pass # Column likely exists
-            
-        try:
-            conn.execute(func.text("ALTER TABLE articles ADD COLUMN user_id VARCHAR"))
-            logger.info("Added user_id column to articles table")
-        except Exception:
-            pass # Column likely exists
-
-run_migrations()
-
 def seed_default_topics():
     # Deprecated: Topics are now seeded per-user upon login
     pass
@@ -80,6 +63,11 @@ async def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db))
 @app.get("/auth/me", response_model=schemas.User)
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+@app.post("/auth/refresh", response_model=schemas.Token)
+async def refresh_token(current_user: models.User = Depends(get_current_user)):
+    access_token = create_access_token(data={"sub": current_user.id})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 def cleanup_old_articles():
@@ -336,61 +324,6 @@ def delete_article(article_id: str, db: Session = Depends(get_db), current_user:
     db.commit()
     return {"ok": True}
 
-# Articles
-@app.get("/feed", response_model=List[schemas.ArticleCard])
-def get_feed(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    logger.debug("Fetching article feed")
-    articles = db.query(models.ArticleCard).filter(
-        models.ArticleCard.is_archived == False,
-        models.ArticleCard.is_consumed == False
-    ).order_by(func.random()).limit(1).all()
-    
-    # Trigger buffer check
-    background_tasks.add_task(ensure_article_buffer)
-    
-    return articles
-
-@app.post("/articles/{article_id}/swipe")
-def swipe_article(article_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    logger.info(f"Swiping article: {article_id}")
-    article = db.query(models.ArticleCard).filter(models.ArticleCard.id == article_id).first()
-    if not article:
-        logger.warning(f"Article not found for swipe: {article_id}")
-        raise HTTPException(status_code=404, detail="Article not found")
-    
-    article.is_consumed = True
-    db.commit()
-    
-    background_tasks.add_task(ensure_article_buffer)
-    return {"ok": True}
-
-@app.get("/archive", response_model=List[schemas.ArticleCard])
-def get_archive(db: Session = Depends(get_db)):
-    logger.debug("Fetching archive")
-    return db.query(models.ArticleCard).filter(models.ArticleCard.is_archived == True).all()
-
-@app.post("/articles/{article_id}/archive")
-def archive_article(article_id: str, db: Session = Depends(get_db)):
-    logger.info(f"Archiving article: {article_id}")
-    article = db.query(models.ArticleCard).filter(models.ArticleCard.id == article_id).first()
-    if not article:
-        logger.warning(f"Article not found for archive: {article_id}")
-        raise HTTPException(status_code=404, detail="Article not found")
-    article.is_archived = True
-    db.commit()
-    return {"ok": True}
-
-@app.delete("/articles/{article_id}")
-def delete_article(article_id: str, db: Session = Depends(get_db)):
-    logger.info(f"Deleting article: {article_id}")
-    article = db.query(models.ArticleCard).filter(models.ArticleCard.id == article_id).first()
-    if not article:
-        logger.warning(f"Article not found for deletion: {article_id}")
-        raise HTTPException(status_code=404, detail="Article not found")
-    db.delete(article)
-    db.commit()
-    logger.info(f"Successfully deleted article: {article_id}")
-    return {"ok": True}
 
 @app.post("/generate/{topic_id}")
 def generate_article(topic_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
