@@ -19,3 +19,5 @@ pubspec.lock
 *.db
 .vscode/
 .github
+.gradle/
+logs/
