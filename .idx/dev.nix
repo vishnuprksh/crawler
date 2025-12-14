@@ -35,6 +35,10 @@
         #     PORT = "$PORT";
         #   };
         # };
+        android = {
+          command = ["flutter" "run" "--device-id" "android-web" "-d" "web-server" "--web-port" "$PORT" ];
+          manager = "flutter";
+        };
       };
     };
 
